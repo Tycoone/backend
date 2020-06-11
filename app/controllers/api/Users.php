@@ -21,6 +21,12 @@ class Users extends Controller
                 'password' => trim($_POST['password']),
                 'confirm_password' => trim($_POST['confirm_password']),
                 'gender' => trim($_POST['gender']),
+                // 'name_err' => '',
+                // 'email_err' => '',
+                // 'password_err' => '',
+                // 'confirm_password_err' => ''
+            ];
+            $err = [
                 'name_err' => '',
                 'email_err' => '',
                 'password_err' => '',
@@ -29,40 +35,40 @@ class Users extends Controller
             // validate name
 
             if (empty($data['firstname'])) {
-                $data['name_err'] = 'Please enter firstname';
+                $err['name_err'] = 'Please enter firstname';
             }
             if (empty($data['lastname'])) {
-                $data['name_err'] = 'Please enter lastname';
+                $err['name_err'] = 'Please enter lastname';
             }
             //Validate Email
             if (empty($data['email'])) {
-                $data['email_err'] = 'Please enter email';
+                $err['email_err'] = 'Please enter email';
             } else {
                 // check email
                 if ($this->userModel->findUserByEmail($data['email'])) {
-                    $data['email_err'] = 'email already taken';
+                    $err['email_err'] = 'email already taken';
                 }
             }
 
             //Validate Password
             if (empty($data['password'])) {
-                $data['password_err'] = 'Please enter password';
+                $err['password_err'] = 'Please enter password';
             } elseif (strlen($data['password']) < 6) {
-                $data['password_err'] = 'Password must have 6 characters';
+                $err['password_err'] = 'Password must have 6 characters';
             }
 
             // Validate Confirm Password
 
             if (empty($data['confirm_password'])) {
-                $data['confirm_password_err'] = 'Please confirm password';
+                $err['confirm_password_err'] = 'Please confirm password';
             } else {
                 if ($data['password'] != $data['confirm_password']) {
-                    $data['confirm_password_err'] = 'Passwords do not match';
+                    $err['confirm_password_err'] = 'Passwords do not match';
                 }
             }
 
             //Make sure errors are empty
-            if (empty($data['email_err']) && empty($data['name_err']) && empty($data['password_err']) && empty($data['confirm_password_err'])) {
+            if (empty($err['email_err']) && empty($err['name_err']) && empty($err['password_err']) && empty($err['confirm_password_err'])) {
                 //validated
                 // die('success');
                 // Hash Password
@@ -71,7 +77,9 @@ class Users extends Controller
                 //Register User
                 if ($this->userModel->register($data)) {
                     flash('register_success', 'You are Registered Successfully');
-                    die($data);
+                    // die($data);
+                    print_r($this->success($data, 200));
+                    die;
                     // redirect('users/login');
                 } else {
                     die('Something went wrong');
@@ -79,22 +87,19 @@ class Users extends Controller
                 #..
             } else {
                 //load view with errors
-                die($data);
+                $result = $this->renderFullError($err, 401);
+                print_r($result);
+                die();
                 // $this->view('users/register', $data);
             }
         } else {
             //Load Form
             $data = [
-                'name' => '',
-                'email' => '',
-                'password' => '',
-                'confirm_password' => '',
-                'name_err' => '',
-                'email_err' => '',
-                'password_err' => '',
-                'confirm_password_err' => ''
+                'Request Error' => 'Method not Allowed '
             ];
-            $this->view('users/register', $data);
+            $result = $this->renderFullError($data, 405);
+            print_r($result);
+            die();
         }
     }
 
@@ -184,7 +189,8 @@ class Users extends Controller
             "exp" => $expire_claim,
             "data" => array(
                 "id" => $user->id,
-                "username" => $user->name,
+                "firstname" => $user->firstname,
+                "lastname" => $user->lastname,
                 "email" => $user->email,
             )
         );

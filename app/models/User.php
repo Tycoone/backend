@@ -30,13 +30,14 @@ class User
 
     public function register($data)
     {
-        $this->db->query('INSERT INTO users (firstname,lastname, email, password) VALUES(:firstname, :lastname :email, :password)');
+        $this->db->query('INSERT INTO users (firstname,lastname, email, password) VALUES(:firstname, :lastname, :email, :password)');
         $this->db->bind(':firstname', $data['firstname']);
         $this->db->bind(':lastname', $data['lastname']);
         $this->db->bind(':email', $data['email']);
         $this->db->bind(':password', $data['password']);
 
         if ($this->db->execute()) {
+            $this->createprofile($data);
             return true;
         } else {
             return false;
@@ -56,10 +57,26 @@ class User
     }
     public function getUserbyId($user_id)
     {
-        $this->db->query('SELECT * FROM users WHERE id= :user_id');
+        $this->db->query('SELECT * FROM users WHERE id= :user_id OR email=:user_id');
         $this->db->bind(':user_id', $user_id);
 
         $row = $this->db->single();
         return $row;
+    }
+    public function createprofile($data)
+    {
+
+        $user = $this->getUserbyId($data['email']);
+
+        $data['user_id'] = $user->id;
+        $this->db->query('INSERT INTO profiles (user_id,gender) VALUES(:user_id, :gender)');
+        $this->db->bind(':user_id', $data['user_id']);
+        $this->db->bind(':gender', $data['gender']);
+
+        if ($this->db->execute()) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }
