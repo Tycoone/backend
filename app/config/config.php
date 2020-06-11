@@ -6,6 +6,6 @@ define('DB_PASS', '');
 define('DB_NAME', 'posts');
 //App Root
 define('APPROOT', dirname(dirname(__FILE__)));
-define('URLROOT', 'http://localhost/frameworkpost/');
+define('URLROOT', 'http://tycoone.me');
 //site name
-define('SITENAME', 'Posts');
+define('SITENAME', 'Tycoone');
