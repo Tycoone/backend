@@ -26,4 +26,24 @@
               die('view does not exist');
           }
       }
+
+      public function success($message, $errorStatusCode = 200)
+      {
+          header('access-Control-Allow-Origin: *');
+          // header("Access-Control-Allow-Headers: X-API-KEY, Origin, Authorization, X-Requested-With, Content-Type, Accept, Access-Control-Request-Method");
+          // header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
+          header("access-Control-Allow-Methods: GET, POST, OPTIONS, PUT, DELETE");
+          header("Content-Type: application/json; charset=UTF-8");
+          header("Access-Control-Max-Age: 3600");
+          header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
+          //Send response code via Header.
+          if (is_numeric($errorStatusCode)) {
+              http_response_code($errorStatusCode);
+              // return json_encode(['code' => $errorStatusCode, 'message' => $message]);
+          }
+          // else
+
+          return json_encode(['success' => ['code' => $errorStatusCode, 'message' => $message]]);
+          // return ['success' => ['code' => $errorStatusCode, 'message' => $message]];
+      }
   }
