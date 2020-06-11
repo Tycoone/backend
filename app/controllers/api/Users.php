@@ -15,10 +15,12 @@ class Users extends Controller
             $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
 
             $data = [
-                'name' => trim($_POST['name']),
+                'firstname' => trim($_POST['firstname']),
+                'lastname' => trim($_POST['lastname']),
                 'email' => trim($_POST['email']),
                 'password' => trim($_POST['password']),
                 'confirm_password' => trim($_POST['confirm_password']),
+                'gender' => trim($_POST['gender']),
                 'name_err' => '',
                 'email_err' => '',
                 'password_err' => '',
@@ -26,8 +28,11 @@ class Users extends Controller
             ];
             // validate name
 
-            if (empty($data['name'])) {
-                $data['name_err'] = 'Please enter email';
+            if (empty($data['firstname'])) {
+                $data['name_err'] = 'Please enter firstname';
+            }
+            if (empty($data['lastname'])) {
+                $data['name_err'] = 'Please enter lastname';
             }
             //Validate Email
             if (empty($data['email'])) {
@@ -66,14 +71,16 @@ class Users extends Controller
                 //Register User
                 if ($this->userModel->register($data)) {
                     flash('register_success', 'You are Registered Successfully');
-                    redirect('users/login');
+                    die($data);
+                    // redirect('users/login');
                 } else {
                     die('Something went wrong');
                 }
                 #..
             } else {
                 //load view with errors
-                $this->view('users/register', $data);
+                die($data);
+                // $this->view('users/register', $data);
             }
         } else {
             //Load Form

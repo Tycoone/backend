@@ -30,8 +30,9 @@ class User
 
     public function register($data)
     {
-        $this->db->query('INSERT INTO users (name, email, password) VALUES(:name, :email, :password)');
-        $this->db->bind(':name', $data['name']);
+        $this->db->query('INSERT INTO users (firstname,lastname, email, password) VALUES(:firstname, :lastname :email, :password)');
+        $this->db->bind(':firstname', $data['firstname']);
+        $this->db->bind(':lastname', $data['lastname']);
         $this->db->bind(':email', $data['email']);
         $this->db->bind(':password', $data['password']);
 
