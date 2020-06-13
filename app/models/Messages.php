@@ -50,12 +50,15 @@ class Messages
     {
 
         $this->db->query("SELECT *
-                          FROM chats      
-                          WHERE sender_id=:id
-                          OR receiver_id=:id
+                          FROM chats
+                          WHERE id=:id
                           ");
         $this->db->bind(':id', $id);
         $results = $this->db->resultSet();
         return $results;
+    }
+    public function createchat(Type $var = null)
+    {
+        # code...
     }
 }
