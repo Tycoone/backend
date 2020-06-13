@@ -192,6 +192,7 @@ class Users extends Controller
                 "firstname" => $user->firstname,
                 "lastname" => $user->lastname,
                 "email" => $user->email,
+                "profile_picture" => ''
             )
         );
 
