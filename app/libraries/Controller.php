@@ -39,7 +39,7 @@
             //Send response code via Header.
             if (is_numeric($errorStatusCode)) {
                 http_response_code($errorStatusCode);
-                return $message;
+                // return $message;
                 return json_encode(['error' => ['code' => $errorStatusCode, 'message' => $message]]);
             }
             // return ['success' => ['code' => $errorStatusCode, 'message' => $message]];

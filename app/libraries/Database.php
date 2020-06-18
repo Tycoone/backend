@@ -75,4 +75,14 @@ class Database
     {
         return $this->stmt->rowCount();
     }
+    public function fetch()
+    {
+        $this->execute();
+        $this->stmt->setFetchMode(PDO::FETCH_ASSOC);
+        return $this->stmt->fetchAll();
+    }
+    public function lastId()
+    {
+        return $this->dbh->lastInsertId('user__id_seq');
+    }
 }

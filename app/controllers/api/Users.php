@@ -143,14 +143,17 @@ class Users extends Controller
                     $this->createUserSession($loggedInUser);
                 } else {
                     $data['password_err'] = 'Password Incorrect';
-
-                    die($data);
+                    var_dump($data);
+                    die();
                     // $this->view('users/login', $data);
                 }
                 #..
             } else {
                 //load view with errors
-                $this->view('users/login', $data);
+                // $this->view('users/login', $data);
+                $data['password_err'] = 'Password Incorrect';
+                var_dump($data);
+                die();
             }
             #..
         } else {
