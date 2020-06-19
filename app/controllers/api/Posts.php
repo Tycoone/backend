@@ -20,8 +20,9 @@ class Posts extends Controller
         $data = [
             'posts' => $posts
         ];
-        $this->view('posts/index', $data);
-        // print(json_encode($data));
+        $result = $this->success($data, 200);
+        print_r($result);
+        die();
     }
     public function show($api, $id)
     {
@@ -29,9 +30,11 @@ class Posts extends Controller
         // var_dump($post->user_id);
         // die();
         $user = $this->userModel->getUserbyId($post->user_id);
+        $comments = $this->getcomments($id);
         $data = [
             'post' => $post,
-            'user' => $user
+            'user' => $user,
+            'comments' => $comments
         ];
         $result = $this->success($data, 200);
         print_r($result);
@@ -95,44 +98,43 @@ class Posts extends Controller
             $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
             $data = [
                 'id' => $id,
-                'title' => trim($_POST['title']),
-                'body' => trim($_POST['body']),
-                'title_err' => '',
-                'body_err' => '',
+                'caption' => trim($_POST['caption']),
             ];
-
+            $err = [];
             //validate title
-            if (empty($data['title'])) {
-                $data['title_err'] = 'Please enter title';
-            }
-            if (empty($data['body'])) {
-                $data['body_err'] = 'Please enter body text';
+            if (empty($data['caption'])) {
+                $err['caption'] = 'Please enter caption';
             }
 
-            if (empty($data['title_err']) && empty($data['body_err'])) {
+            if (empty($err)) {
                 // die('success');
                 if ($this->postModel->updatePost($data)) {
-                    flash('post_message', 'Post Edited');
-                    redirect("posts");
+                    $data = [
+                        'message' => 'Post Updated Successfully'
+                    ];
+                    $result = $this->success($data, 200);
+                    print_r($result);
+                    die();
                 } else {
-                    die('somethin went wrong');
+                    $err = [
+                        'message' => 'Something went wrong'
+                    ];
+                    $result = $this->renderFullError($data, 500);
+                    print_r($result);
+                    die();
                 }
             } else {
-                $this->view('posts/edit', $data);
+                $result = $this->renderFullError($err, 400);
+                print_r($result);
+                die();
             }
         } else {
-            $post = $this->postModel->show($id);
-            if ($post->user_id != $_SESSION['user_id']) {
-                redirect('posts');
-            }
             $data = [
-                'id' => $id,
-                'title' => $post->title,
-                'body' => $post->body,
-                'title_err' => '',
-                'body_err' => '',
+                'Request Error' => 'Method not Allowed '
             ];
-            $this->view('posts/edit', $data);
+            $result = $this->renderFullError($data, 405);
+            print_r($result);
+            die();
         }
     }
     public function delete($id)
@@ -153,7 +155,35 @@ class Posts extends Controller
 
     public function like($api, $post_id)
     {
-        # code...
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
+            $data = [
+                'post_id' => $post_id,
+                'user_id' => $this->user['data']->id,
+            ];
+            $err = [];
+            if ($this->postModel->validate_if_liked($data)) {
+                $data = [
+                    'Error' => 'You have already liked'
+                ];
+                $result = $this->renderFullError($data, 401);
+                print_r($result);
+                die();
+            } else {
+                if ($this->postModel->likepost($data)) {
+                    $result = $this->success('Like Successful', 200);
+                    print_r($result);
+                    die();
+                };
+            }
+        } else {
+            $data = [
+                'Request Error' => 'Method not Allowed '
+            ];
+            $result = $this->renderFullError($data, 405);
+            print_r($result);
+            die();
+        }
     }
     public function uploadfile($var = null)
     {
@@ -233,9 +263,47 @@ class Posts extends Controller
                         // die;
                     }
                 }
-               
             }
             return $files_arr;
         }
+    }
+    public function comment($api, $post_id)
+    {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
+            $img = null;
+            if (isset($_FILES["file"]["name"])) {
+                $img = $this->uploadfile();
+            }
+            $data = [
+                'post_id' => $post_id,
+                'user_id' => $this->user['data']->id,
+                'comment' => trim($_POST['comment']),
+                'type' => trim($_POST['type']),
+                'file' => $img,
+            ];
+            $err = [];
+
+            if ($this->postModel->commentonpost($data)) {
+                $result = $this->success('Comment Successful', 200);
+                print_r($result);
+                die();
+            }
+        } else {
+            $data = [
+                'Request Error' => 'Method not Allowed '
+            ];
+            $result = $this->renderFullError($data, 405);
+            print_r($result);
+            die();
+        }
+    }
+    protected function getcomments($id)
+    {
+        $post = $this->postModel->getcomments($id);
+        // $result = $this->success($post, 200);
+        // print_r($result);
+        return $post;
+        // die();
     }
 }

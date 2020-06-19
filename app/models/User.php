@@ -79,4 +79,15 @@ class User
             return false;
         }
     }
+    public function getprofile($user_id)
+    {
+        $this->db->query('SELECT * FROM users
+                          INNER JOIN profiles
+                          ON users.id = profiles.user_id
+                         WHERE users.id= :user_id
+                       ');
+        $this->db->bind(':user_id', $user_id);
+        $results = $this->db->resultSet();
+        return $results;
+    }
 }

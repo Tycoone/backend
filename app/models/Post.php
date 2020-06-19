@@ -23,7 +23,7 @@ class Post
                           FROM posts
                           INNER JOIN users
                           ON posts.user_id = users.id
-                          ORDER BY posts.created_at DESC
+                          ORDER BY posts.timestamp DESC
                           ');
         $results = $this->db->resultSet();
         return $results;
@@ -70,8 +70,8 @@ class Post
     {
         $this->db->query('UPDATE posts SET caption=:caption WHERE id =:id');
         $this->db->bind(':id', $data['id']);
-        $this->db->bind(':caption', $data['title']);
-        $this->db->bind(':body', $data['body']);
+        $this->db->bind(':caption', $data['caption']);
+        // $this->db->bind(':body', $data['body']);
 
 
 
@@ -107,15 +107,27 @@ class Post
     }
     public function commentonpost($data)
     {
-        # code...
+        $this->db->query('INSERT INTO comments (user_id, comment, type, file, post_id) VALUES(:user_id, :comment, :type, :file, :post_id)');
+        $this->db->bind(':post_id', $data['post_id']);
+        $this->db->bind(':user_id', $data['user_id']);
+        $this->db->bind(':comment', $data['comment']);
+        $this->db->bind(':type', $data['type']);
+        $this->db->bind(':file', $data['file']);
+
+        if ($this->db->execute()) {
+            $this->update_no_of_comments($data['post_id']);
+            return true;
+        } else {
+            return false;
+        }
     }
     protected function update_no_of_comments($post_id)
     {
         $post = $this->show($post_id);
-        $updatedno = $post->no_of_likes + 1;
+        $updatedno = $post->no_of_comments + 1;
 
         $this->db->query('UPDATE posts SET no_of_comments=:comment WHERE id =:id');
-        $this->db->bind(':id', $post['id']);
+        $this->db->bind(':id', $post_id);
         $this->db->bind(':comment', $updatedno);
         if ($this->db->execute()) {
             return true;
@@ -137,10 +149,18 @@ class Post
             return false;
         }
     }
-    // public function validate_if_liked(Type $var = null)
-    // {
-    //     # code...
-    // }
+    public function validate_if_liked($data)
+    {
+        $this->db->query("SELECT *
+                          FROM likes      
+                          WHERE post_id=:post_id
+                          AND user_id=:user_id
+                          ");
+        $this->db->bind(':post_id', $data['post_id']);
+        $this->db->bind(':user_id', $data['user_id']);
+        $results = $this->db->single();
+        return $results;
+    }
     protected function uploadfile($data)
     {
         $this->db->query('INSERT INTO post_files (post_id, file) VALUES(:post_id, :file)');
@@ -152,5 +172,19 @@ class Post
         } else {
             return false;
         }
+    }
+    public function getcomments($post_id)
+    {
+        $this->db->query("SELECT *
+        FROM comments      
+        WHERE post_id=:postid
+        ");
+        $this->db->bind(':postid', $post_id);
+        $results = $this->db->resultSet();
+        return $results;
+    }
+    public function gelastcomment($var = null)
+    {
+        # code...
     }
 }
