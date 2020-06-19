@@ -30,6 +30,8 @@ class Post
     }
     public function addPost($data)
     {
+        // var_dump($data['file']);
+        // die;
         $this->db->query('INSERT INTO posts (caption, user_id, no_of_likes, no_of_comments, no_of_shares) VALUES(:caption, :user_id, :no_of_likes, :no_of_comments, :no_of_shares)');
         $this->db->bind(':caption', $data['caption']);
         $this->db->bind(':user_id', $data['user_id']);
@@ -39,6 +41,7 @@ class Post
 
         if ($this->db->execute()) {
             $last_id = $this->db->lastId();
+
             if (isset($data['file'])) {
                 foreach ($data['file'] as $file) {
                     $arr = [

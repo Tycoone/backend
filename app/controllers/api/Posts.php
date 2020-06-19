@@ -50,6 +50,8 @@ class Posts extends Controller
                 'user_id' => $this->user['data']->id,
                 'file' => $img
             ];
+            // var_dump($data);
+            // die;
             $err = [];
             //validate title
             if (empty($data['caption'])) {
@@ -231,7 +233,9 @@ class Posts extends Controller
                         // die;
                     }
                 }
+               
             }
+            return $files_arr;
         }
     }
 }
