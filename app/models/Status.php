@@ -30,4 +30,8 @@ class Status
     {
         # code...
     }
+    public function updateview(Type $var = null)
+    {
+        # code...
+    }
 }

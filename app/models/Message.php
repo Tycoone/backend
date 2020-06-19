@@ -10,28 +10,63 @@ class Message
      */
     public function __construct()
     {
+
         $this->db = new Database;
     }
     public function getchats($user_id)
     {
 
-        $this->db->query("SELECT *
-                          FROM chat      
-                          WHERE user1=:id
-                          OR user2=:id
-                          ");
+        // $this->db->query("SELECT *
+        //                   FROM chat      
+        //                   WHERE user1=:id
+        //                   OR user2=:id
+        //                   ");
+        // $this->db->query("SELECT Message.id, Message.from, Message.body, Message.isread, Message.timestamp, User.id, User.username,
+        // FROM messages as Message 
+        //  LEFT JOIN users as User ON (Message.from = User.id)
+        // ORDER BY Message.timestamp DESC
+        // Limit 0, 1");
+        $this->db->query("SELECT 
+        messages.id, messages.sender_id,messages.receiver_id, messages.message, messages.status, messages.timestamp,
+        users.id, users.firstname
+       FROM messages 
+       LEFT JOIN users ON (messages.sender_id = users.id)
+       WHERE sender_id = :id
+        OR receiver_id = :id
+       ORDER BY messages.timestamp DESC
+    --    LIMIT 0 , 1
+       ");
         $this->db->bind(':id', $user_id);
         $results = $this->db->resultSet();
         return $results;
     }
-    public function getmessages($id)
+    public function getmessages($data)
     {
 
-        $this->db->query("SELECT *
-                          FROM messages      
-                          WHERE chat_id=:id
-                          ");
-        $this->db->bind(':id', $id);
+        // $this->db->query("SELECT messages.id, messages.sender_id,messages.receiver_id, messages.message, messages.status, messages.timestamp,
+        //                   users.id, users.firstname
+        //                   FROM messages 
+        //                   LEFT JOIN users ON (messages.sender_id = users.id)      
+        //                   WHERE (sender_id=:senderid
+        //                   AND receiver_id=:receiverid)
+        //                   OR(sender_id=:receiver_id AND receiver_id=:senderid)
+        //                   ");
+                        //   $this->db->query("SELECT *
+                        //   FROM messages 
+
+                        //   WHERE (sender_id=:senderid
+                        //   AND receiver_id=:receiverid)
+                        //   OR(sender_id=:receiver_id AND receiver_id=:senderid)
+                        //   ");
+                        $this->db->query("SELECT *
+                        FROM messages 
+
+                        WHERE (sender_id=:senderid
+                        AND receiver_id=:receiverid)
+                        OR(sender_id=:receiverid AND receiver_id=:senderid)
+                        ");
+        $this->db->bind(':senderid', $data['sender_id']);
+        $this->db->bind(':receiverid', $data['receiver_id']);
         $results = $this->db->resultSet();
         return $results;
     }

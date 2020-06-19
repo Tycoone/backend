@@ -1,100 +1,84 @@
 <?php
-class Messages  extends Controller
+class Posts extends Controller
 {
 
     public $user;
 
     use authuser;
-
-
     public function __construct()
     {
+        // if (!isLoggedIn()) {
+        //     redirect('users/login');
+        // }
         $this->user = $this->user();
-        // $user_id = $user['data']->id;
+        $this->postModel = $this->model('Post');
         $this->userModel = $this->model('User');
-        $this->messageModel = $this->model('Message');
-        header("access-Control-Allow-Methods: GET, POST, OPTIONS, PUT, DELETE");
-        header("Content-Type: application/json; charset=UTF-8");
     }
     public function index()
     {
-        // require_once '../vendor/firebase/php-jwt/src/JWT.php';
-        print_r(json_encode($this->user()));
+        $posts = $this->postModel->getPosts();
+        $data = [
+            'posts' => $posts
+        ];
+        $this->view('posts/index', $data);
+        // print(json_encode($data));
     }
-    public function getchats()
+    public function show($api, $id)
     {
-        // $user = $this->user();
-        $user_id = $this->user['data']->id;
-        $data = $this->messageModel->getchats($user_id);
-        die(json_encode($data));
+        $post = $this->postModel->show($id);
+        // var_dump($post->user_id);
+        // die();
+        $user = $this->userModel->getUserbyId($post->user_id);
+        $data = [
+            'post' => $post,
+            'user' => $user
+        ];
+        $result = $this->success($data, 200);
+        print_r($result);
+        die();
     }
-    public function newmessage($api, $chat_id = null)
+    public function add()
     {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $user_id = $this->user['data']->id;
-            $img = null;
             $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
+            $img = null;
             if (isset($_FILES["file"]["name"])) {
                 $img = $this->uploadfile();
             }
             $data = [
-                'sender_id' => trim($user_id),
-                'receiver_id' => trim($_POST['receiver_id']),
-                'type' => trim($_POST['type']),
-                'file' => $img,
-                'message' => trim($_POST['message']),
-                'status' => 'sent',
-                'chat_id' => $chat_id,
+                'caption' => trim($_POST['caption']),
+                'user_id' => $this->user['data']->id,
+                'file' => $img
             ];
-
             $err = [];
-
-            //Validate Email
-            if (empty($data['sender_id']) || is_null($data['sender_id']) || $data['sender_id'] = '') {
-                $err['user'] = 'You are not logged in';
+            //validate title
+            if (empty($data['caption'])) {
+                $err['caption_err'] = 'Please enter caption';
             }
 
-            //Validate Password
-            if (empty($data['receiver_id'])) {
-                $err['receiver'] = 'No receiver parsed';
-            }
-            if (empty($data['message'])) {
-                $err['message'] = 'No message given';
-            }
-
-
-            //Make sure errors are empty
             if (empty($err)) {
-                if (is_null($data['chat_id'])) {
-                    $getmessage = $this->messageModel->check($data);
-                    if ($getmessage) {
-                        $data['chat_id'] = $getmessage->chat_id;
-                    } else {
-                        $data['chat_id'] = $this->messageModel->createchat($data);
-                    }
-                }
-
-
-                $message = $this->messageModel->sendmessage($data);
-
-                if ($message) {
-                    //create session
-                    die(json_encode($message));
-                } else {
-                    var_dump($err);
+                // die('success');
+                if ($this->postModel->addPost($data)) {
+                    $data = [
+                        'message' => 'Post Added Successfully'
+                    ];
+                    $result = $this->success($data, 200);
+                    print_r($result);
                     die();
-                    // $this->view('users/login', $data);
+                } else {
+                    $err = [
+                        'message' => 'Something went wrong'
+                    ];
+                    $result = $this->renderFullError($data, 500);
+                    print_r($result);
+                    die();
                 }
-                #..
             } else {
-                //load view with errors
-                $result = $this->renderFullError($err, 401);
+                $result = $this->renderFullError($err, 400);
                 print_r($result);
                 die();
             }
-            #..
         } else {
-            //Load Form
             $data = [
                 'Request Error' => 'Method not Allowed '
             ];
@@ -103,15 +87,71 @@ class Messages  extends Controller
             die();
         }
     }
-    public function getmessages($api, $receiver_id)
+    public function edit($id)
     {
-        $user_id = $this->user['data']->id;
-        $data = [
-            'sender_id' => trim($user_id),
-            'receiver_id' => trim($receiver_id),
-        ];
-        $messages  = $this->messageModel->getmessages($data);
-        die(json_encode($messages));
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
+            $data = [
+                'id' => $id,
+                'title' => trim($_POST['title']),
+                'body' => trim($_POST['body']),
+                'title_err' => '',
+                'body_err' => '',
+            ];
+
+            //validate title
+            if (empty($data['title'])) {
+                $data['title_err'] = 'Please enter title';
+            }
+            if (empty($data['body'])) {
+                $data['body_err'] = 'Please enter body text';
+            }
+
+            if (empty($data['title_err']) && empty($data['body_err'])) {
+                // die('success');
+                if ($this->postModel->updatePost($data)) {
+                    flash('post_message', 'Post Edited');
+                    redirect("posts");
+                } else {
+                    die('somethin went wrong');
+                }
+            } else {
+                $this->view('posts/edit', $data);
+            }
+        } else {
+            $post = $this->postModel->show($id);
+            if ($post->user_id != $_SESSION['user_id']) {
+                redirect('posts');
+            }
+            $data = [
+                'id' => $id,
+                'title' => $post->title,
+                'body' => $post->body,
+                'title_err' => '',
+                'body_err' => '',
+            ];
+            $this->view('posts/edit', $data);
+        }
+    }
+    public function delete($id)
+    {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $post = $this->postModel->show($id);
+            if ($post->user_id != $_SESSION['user_id']) {
+                redirect('posts');
+            }
+            if ($this->postModel->deletePost($id)) {
+                flash('post_message', 'Post Removed');
+                redirect('posts');
+            }
+        } else {
+            redirect('posts');
+        }
+    }
+
+    public function like($api, $post_id)
+    {
+        # code...
     }
     public function uploadfile($var = null)
     {
@@ -123,7 +163,7 @@ class Messages  extends Controller
 
 
             // Upload directory
-            $upload_location = "upload/img/";
+            $upload_location = "uploads/img/";
 
             // To store uploaded files path
             $files_arr = array();

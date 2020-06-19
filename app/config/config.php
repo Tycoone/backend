@@ -10,3 +10,6 @@ define('APPROOT', dirname(dirname(__FILE__)));
 define('URLROOT', 'http://tycoone.me/');
 //site name
 define('SITENAME', 'Tycoone');
+
+
+// getenv('db');
