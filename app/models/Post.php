@@ -15,7 +15,7 @@ class Post
         $this->db = new Database;
     }
 
-    public function getPosts()
+    public function getPosts($id)
     {
         $this->db->query('SELECT *,
                           posts.id as postId,
@@ -23,8 +23,10 @@ class Post
                           FROM posts
                           INNER JOIN users
                           ON posts.user_id = users.id
-                          ORDER BY posts.timestamp DESC
+                        --   WHERE
+                        --   ORDER BY posts.timestamp DESC
                           ');
+        // $this->db->query("SELECT * FROM posts join connections on  posts.user_id=connections.user1 OR connections.user2  and connections.user1 =$id or connections.user2 =$id");
         $results = $this->db->resultSet();
         return $results;
     }

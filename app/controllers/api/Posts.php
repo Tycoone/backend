@@ -16,7 +16,7 @@ class Posts extends Controller
     }
     public function index()
     {
-        $posts = $this->postModel->getPosts();
+        $posts = $this->postModel->getPosts($this->user['data']->id);
         $data = [
             'posts' => $posts
         ];
@@ -305,5 +305,13 @@ class Posts extends Controller
         // print_r($result);
         return $post;
         // die();
+    }
+    public function getcomment($api, $id)
+    {
+        $post = $this->postModel->getcomments($id);
+        $result = $this->success($post, 200);
+        print_r($result);
+        // return $post;
+        die();
     }
 }

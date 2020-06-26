@@ -26,31 +26,39 @@ class Messages  extends Controller
         // $user = $this->user();
         $user_id = $this->user['data']->id;
         $data = $this->messageModel->getchats($user_id);
-        die(json_encode($data));
+        // foreach ($data as $key => $value) {
+        //     # code...
+        // }
+        // die(json_encode($data));
+        $result = $this->success($data, 200);
+        print_r($result);
+        die();
     }
-    public function newmessage($api, $chat_id = null)
+    public function newmessage($api, $receiver_id)
     {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $user_id = $this->user['data']->id;
+            // $user_id=number_format($user_id);
+            // var_dump($user_id);
             $img = null;
             $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
             if (isset($_FILES["file"]["name"])) {
                 $img = $this->uploadfile();
             }
             $data = [
-                'sender_id' => trim($user_id),
-                'receiver_id' => trim($_POST['receiver_id']),
+                'sender_id' => $user_id,
+                'receiver_id' => $receiver_id,
                 'type' => trim($_POST['type']),
                 'file' => $img,
                 'message' => trim($_POST['message']),
                 'status' => 'sent',
-                'chat_id' => $chat_id,
+                'chat_id' => 1,
             ];
 
             $err = [];
 
             //Validate Email
-            if (empty($data['sender_id']) || is_null($data['sender_id']) || $data['sender_id'] = '') {
+            if (empty($data['sender_id']) || is_null($data['sender_id']) || $data['sender_id'] == '') {
                 $err['user'] = 'You are not logged in';
             }
 
@@ -65,21 +73,23 @@ class Messages  extends Controller
 
             //Make sure errors are empty
             if (empty($err)) {
-                if (is_null($data['chat_id'])) {
-                    $getmessage = $this->messageModel->check($data);
-                    if ($getmessage) {
-                        $data['chat_id'] = $getmessage->chat_id;
-                    } else {
-                        $data['chat_id'] = $this->messageModel->createchat($data);
-                    }
-                }
+                // if (is_null($data['chat_id'])) {
+                //     $getmessage = $this->messageModel->check($data);
+                //     if ($getmessage) {
+                //         $data['chat_id'] = $getmessage->chat_id;
+                //     } else {
+                //         $data['chat_id'] = $this->messageModel->createchat($data);
+                //     }
+                // }
 
 
                 $message = $this->messageModel->sendmessage($data);
 
                 if ($message) {
                     //create session
-                    die(json_encode($message));
+                    $result = $this->success('Message sent Successfully ', 200);
+                    print_r($result);
+                    die();
                 } else {
                     var_dump($err);
                     die();

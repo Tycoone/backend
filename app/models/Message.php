@@ -26,16 +26,50 @@ class Message
         //  LEFT JOIN users as User ON (Message.from = User.id)
         // ORDER BY Message.timestamp DESC
         // Limit 0, 1");
-        $this->db->query("SELECT 
-        messages.id, messages.sender_id,messages.receiver_id, messages.message, messages.status, messages.timestamp,
-        users.id, users.firstname
-       FROM messages 
-       LEFT JOIN users ON (messages.sender_id = users.id)
-       WHERE sender_id = :id
-        OR receiver_id = :id
-       ORDER BY messages.timestamp DESC
-    --    LIMIT 0 , 1
-       ");
+        // $this->db->query("SELECT 
+        //     messages.id, messages.sender_id,messages.receiver_id, messages.message, messages.status, messages.timestamp,
+        //     users.id, users.firstname,
+        //     COUNT(messages.sender_id) AS NumberOfmessages
+        //    FROM messages 
+        //    INNER JOIN users
+        //    ON (messages.sender_id = users.id)
+        //    WHERE sender_id = :id
+        //    OR receiver_id = :id
+        //    GROUP BY sender_id,receiver_id
+        //    ORDER BY messages.timestamp DESC
+        //    LIMIT 0 , 30
+        //    ");
+
+
+        //         $this->db->query("SELECT 
+        // messages.sender_id,messages.receiver_id,
+        // users.id, users.firstname,
+        // COUNT(messages.sender_id) AS NumberOfmessages
+        // FROM messages 
+        // INNER JOIN users
+        // ON (messages.sender_id = users.id)
+        // WHERE sender_id = :id
+        // OR receiver_id = :id
+        // GROUP BY sender_id,receiver_id
+        // -- ORDER BY messages.timestamp DESC
+        // LIMIT 0 , 30
+        // ");
+        // $this->db->query("SELECT messages.message,
+        // messages.sender_id,messages.receiver_id,
+        // users.id, users.firstname
+        // FROM messages 
+        // INNER JOIN users
+        // ON (messages.sender_id = users.id)
+        // WHERE sender_id = :id
+        // OR receiver_id = :id
+        // -- GROUP BY sender_id,receiver_id
+        // ORDER BY messages.timestamp DESC,messages.message
+        // LIMIT 0 , 30
+        // ");
+        $this->db->query("SELECT sender_id, receiver_id, MAX(timestamp) AS max_date
+        FROM messages
+        WHERE sender_id = :id OR receiver_id = :id
+        GROUP BY sender_id, receiver_id");
         $this->db->bind(':id', $user_id);
         $results = $this->db->resultSet();
         return $results;
@@ -51,14 +85,14 @@ class Message
         //                   AND receiver_id=:receiverid)
         //                   OR(sender_id=:receiver_id AND receiver_id=:senderid)
         //                   ");
-                        //   $this->db->query("SELECT *
-                        //   FROM messages 
+        //   $this->db->query("SELECT *
+        //   FROM messages 
 
-                        //   WHERE (sender_id=:senderid
-                        //   AND receiver_id=:receiverid)
-                        //   OR(sender_id=:receiver_id AND receiver_id=:senderid)
-                        //   ");
-                        $this->db->query("SELECT *
+        //   WHERE (sender_id=:senderid
+        //   AND receiver_id=:receiverid)
+        //   OR(sender_id=:receiver_id AND receiver_id=:senderid)
+        //   ");
+        $this->db->query("SELECT *
                         FROM messages 
 
                         WHERE (sender_id=:senderid
@@ -73,10 +107,8 @@ class Message
     public function sendmessage($data)
     {
 
-        $this->db->query("INSERT 
-                          INTO messages      
-                          (sender_id, receiver_id, message, status, type, chat_id) VALUES(:sender_id, :receiver_id, :message,:status,:type, :file, :chat_id)
-        ");
+        // var_dump($data);
+        $this->db->query("INSERT INTO messages (sender_id, receiver_id, message, status, type, file, chat_id) VALUES(:sender_id, :receiver_id, :message, :status, :type, :file, :chat_id)");
         $this->db->bind(':sender_id', $data['sender_id']);
         $this->db->bind(':receiver_id', $data['receiver_id']);
         $this->db->bind(':message', $data['message']);
